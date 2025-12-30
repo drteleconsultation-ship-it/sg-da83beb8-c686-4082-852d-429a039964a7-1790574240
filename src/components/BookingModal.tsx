@@ -18,7 +18,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import confetti from 'canvas-confetti';
 import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/contexts/AuthContext';
 
 // Validation schema
 const bookingSchema = z.object({
@@ -127,7 +126,6 @@ const generateTimeSlots = (consultationType: 'online' | 'clinic', selectedDate?:
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<'form' | 'payment' | 'confirmation'>('form');
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -155,21 +153,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [timePopoverOpen, setTimePopoverOpen] = useState(false);
   
-  // Pre-fill data if user is logged in
-  useEffect(() => {
-    if (user && isOpen) {
-      setBooking(prev => ({
-        ...prev,
-        // Pre-fill email if available in user metadata or email field
-        email: user.email || prev.email,
-        // Pre-fill phone if available in user phone field
-        whatsapp: user.phone || prev.whatsapp,
-        // Try to get name from metadata if it exists
-        name: user.user_metadata?.full_name || prev.name,
-      }));
-    }
-  }, [user, isOpen]);
-
   // Fetch booked slots count when date changes
   useEffect(() => {
     const fetchBookedSlots = async () => {
