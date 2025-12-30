@@ -393,32 +393,62 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log(`Total attachments prepared: ${attachments.length}`);
 
-    let customerEmail;
+    const emailStatus = {
+      customerEmailSent: false,
+      clinicEmailSent: false,
+      emailError: null as string | null
+    };
     
-    // Send customer confirmation email only if email is provided
-    if (bookingData.email) {
-      customerEmail = await resend.emails.send({
-        from: 'Dr. Deogade Clinic <onboarding@resend.dev>',
-        to: [bookingData.email],
-        subject: 'Appointment Confirmation - Dr. Deogade Clinic',
-        html: customerEmailContent,
-        attachments: attachments.length > 0 ? attachments : undefined,
-      });
+    // Try to send emails, but don't fail the booking if emails fail
+    try {
+      // Send customer confirmation email only if email is provided
+      if (bookingData.email) {
+        try {
+          const customerEmail = await resend.emails.send({
+            from: 'Dr. Deogade Clinic <onboarding@resend.dev>',
+            to: [bookingData.email],
+            subject: 'Appointment Confirmation - Dr. Deogade Clinic',
+            html: customerEmailContent,
+            attachments: attachments.length > 0 ? attachments : undefined,
+          });
 
-      console.log('Customer email sent successfully');
+          if (customerEmail.data?.id) {
+            emailStatus.customerEmailSent = true;
+            console.log('Customer email sent successfully:', customerEmail.data.id);
+          }
+        } catch (customerEmailError) {
+          console.error('Failed to send customer email:', customerEmailError);
+          emailStatus.emailError = `Customer email failed: ${customerEmailError instanceof Error ? customerEmailError.message : 'Unknown error'}`;
+        }
+      }
+
+      // Send clinic notification email (always attempted)
+      try {
+        const clinicEmail = await resend.emails.send({
+          from: 'Dr. Deogade Clinic <onboarding@resend.dev>',
+          to: ['drteleconsultation@gmail.com'],
+          subject: `New Appointment: ${bookingData.serviceName} - ${bookingData.date} at ${bookingData.timeSlot}`,
+          html: clinicEmailContent,
+          attachments: attachments.length > 0 ? attachments : undefined,
+        });
+
+        if (clinicEmail.data?.id) {
+          emailStatus.clinicEmailSent = true;
+          console.log('Clinic email sent successfully:', clinicEmail.data.id);
+        }
+      } catch (clinicEmailError) {
+        console.error('Failed to send clinic email:', clinicEmailError);
+        emailStatus.emailError = emailStatus.emailError 
+          ? `${emailStatus.emailError}; Clinic email failed: ${clinicEmailError instanceof Error ? clinicEmailError.message : 'Unknown error'}`
+          : `Clinic email failed: ${clinicEmailError instanceof Error ? clinicEmailError.message : 'Unknown error'}`;
+      }
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      emailStatus.emailError = emailError instanceof Error ? emailError.message : 'Email service unavailable';
     }
 
-    // Send clinic notification email (always sent)
-    const clinicEmail = await resend.emails.send({
-      from: 'Dr. Deogade Clinic <onboarding@resend.dev>',
-      to: ['drteleconsultation@gmail.com'],
-      subject: `New Appointment: ${bookingData.serviceName} - ${bookingData.date} at ${bookingData.timeSlot}`,
-      html: clinicEmailContent,
-      attachments: attachments.length > 0 ? attachments : undefined,
-    });
+    console.log('Email status:', emailStatus);
 
-    console.log('Clinic email sent successfully');
-    
     // Trigger Zapier webhook for Google Calendar integration
     const zapierWebhookUrl = Deno.env.get('ZAPIER_WEBHOOK_URL');
     if (zapierWebhookUrl) {
@@ -468,9 +498,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(JSON.stringify({ 
-      success: true, 
-      customerEmailId: customerEmail?.data?.id,
-      clinicEmailId: clinicEmail.data?.id 
+      success: true,
+      message: 'Booking confirmed successfully',
+      emailStatus: {
+        customerEmailSent: emailStatus.customerEmailSent,
+        clinicEmailSent: emailStatus.clinicEmailSent,
+        error: emailStatus.emailError
+      }
     }), {
       status: 200,
       headers: {
