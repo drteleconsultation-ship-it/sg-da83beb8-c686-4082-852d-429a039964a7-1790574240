@@ -43,7 +43,7 @@ function sanitizeHtml(text: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
-function validateBookingRequest(data: any): { valid: boolean; error?: string } {
+function validateBookingRequest(data: Record<string, any>): { valid: boolean; error?: string } {
   if (!data.name || typeof data.name !== 'string' || data.name.length > 100) {
     return { valid: false, error: 'Invalid name' };
   }
@@ -477,10 +477,11 @@ const handler = async (req: Request): Promise<Response> => {
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in send-booking-confirmation function:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
