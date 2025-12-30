@@ -30,3 +30,4 @@ build/
 .vercel/
 .turbo/
 out/
+.vercel
