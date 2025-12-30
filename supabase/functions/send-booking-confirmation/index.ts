@@ -43,6 +43,7 @@ function sanitizeHtml(text: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateBookingRequest(data: Record<string, any>): { valid: boolean; error?: string } {
   if (!data.name || typeof data.name !== 'string' || data.name.length > 100) {
     return { valid: false, error: 'Invalid name' };
