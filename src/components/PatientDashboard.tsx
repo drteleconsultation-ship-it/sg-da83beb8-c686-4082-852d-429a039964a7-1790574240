@@ -6,13 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Clock, User, Phone, Mail, LogOut, FileText, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User as UserIcon, Phone, Mail, LogOut, FileText, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { User } from '@supabase/supabase-js';
 
 interface PatientDashboardProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: User;
   onLogout: () => void;
 }
 
@@ -161,7 +162,7 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                  <UserIcon className="h-5 w-5" />
                   Profile Information
                 </CardTitle>
               </CardHeader>
@@ -180,7 +181,7 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
                 )}
                 {profile?.full_name && (
                   <div className="flex items-center gap-2 text-sm">
-                    <User className="h-4 w-4 text-muted-foreground" />
+                    <UserIcon className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Name:</span>
                     <span>{profile.full_name}</span>
                   </div>
@@ -237,7 +238,7 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
                             <span>{appointment.time_slot}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
+                            <UserIcon className="h-4 w-4 text-muted-foreground" />
                             <span>{appointment.patient_name}, {appointment.age} years</span>
                           </div>
                         </div>

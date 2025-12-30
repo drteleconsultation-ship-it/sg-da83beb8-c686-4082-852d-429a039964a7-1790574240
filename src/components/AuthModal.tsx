@@ -8,11 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Phone, Lock, KeyRound } from 'lucide-react';
 import { z } from 'zod';
+import { User } from '@supabase/supabase-js';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthSuccess: (user: any) => void;
+  onAuthSuccess: (user: User) => void;
 }
 
 const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, "Invalid Indian mobile number");
