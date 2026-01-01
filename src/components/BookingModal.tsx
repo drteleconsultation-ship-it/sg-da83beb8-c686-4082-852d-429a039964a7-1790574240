@@ -989,44 +989,112 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
                   Quick and secure payment using UPI apps
                 </p>
                 {booking.paymentMethod === 'upi' && (
-                  <div className="mt-3 space-y-3">
-                    <div className="p-3 bg-background rounded border space-y-3">
-                      {/* QR Code */}
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm font-medium text-center">Scan QR Code to Pay</p>
-                        <div className="p-3 bg-white rounded-lg border">
-                          <QRCodeSVG 
-                            value={`upi://pay?pa=7415379845@okbizaxis&pn=Dr%20Teleconsultation&am=${amount}&cu=INR&tn=Consultation%20Fee`}
-                            size={160}
-                            level="H"
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center">
-                          Scan with any UPI app (GPay, PhonePe, Paytm, etc.)
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="flex-1 h-px bg-border"></div>
-                        <span>OR</span>
-                        <div className="flex-1 h-px bg-border"></div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">UPI ID: 7415379845@okbizaxis</p>
+                  <div className="mt-3 space-y-4">
+                    {/* UPI App Buttons */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">Pay with UPI App:</p>
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={copyUPIId}
-                          className="h-8 text-xs"
+                          variant="outline"
+                          className="h-auto py-3 flex flex-col items-center gap-2"
+                          onClick={() => {
+                            const upiLink = generateUPILink('gpay');
+                            window.location.href = upiLink;
+                            toast({
+                              title: "Opening Google Pay",
+                              description: "Complete payment and return to upload screenshot",
+                            });
+                          }}
                         >
-                          Copy
+                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                            <span className="text-xl font-bold text-blue-600">G</span>
+                          </div>
+                          <span className="text-xs">Google Pay</span>
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-auto py-3 flex flex-col items-center gap-2"
+                          onClick={() => {
+                            const upiLink = generateUPILink('phonepe');
+                            window.location.href = upiLink;
+                            toast({
+                              title: "Opening PhonePe",
+                              description: "Complete payment and return to upload screenshot",
+                            });
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                            <span className="text-xl font-bold text-white">₹</span>
+                          </div>
+                          <span className="text-xs">PhonePe</span>
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-auto py-3 flex flex-col items-center gap-2"
+                          onClick={() => {
+                            const upiLink = generateUPILink('paytm');
+                            window.location.href = upiLink;
+                            toast({
+                              title: "Opening Paytm",
+                              description: "Complete payment and return to upload screenshot",
+                            });
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                            <span className="text-xl font-bold text-white">₹</span>
+                          </div>
+                          <span className="text-xs">Paytm</span>
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-auto py-3 flex flex-col items-center gap-2"
+                          onClick={() => {
+                            const upiLink = generateUPILink();
+                            window.location.href = upiLink;
+                            toast({
+                              title: "Opening UPI Apps",
+                              description: "Choose your app and complete payment",
+                            });
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                            <span className="text-xl font-bold text-white">₹</span>
+                          </div>
+                          <span className="text-xs">Other UPI</span>
                         </Button>
                       </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Tap any button above to open the app and complete payment
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex-1 h-px bg-border"></div>
+                      <span>OR</span>
+                      <div className="flex-1 h-px bg-border"></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">UPI ID: 7415379845@okbizaxis</p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={copyUPIId}
+                        className="h-8 text-xs"
+                      >
+                        Copy
+                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      After successful payment, upload a screenshot below.
+                      After successful payment, upload a screenshot below to confirm booking.
                     </p>
 
                     {/* Payment Screenshot Upload - Required for UPI */}
@@ -1150,7 +1218,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
             disabled={isSubmitting}
             className="flex-1"
           >
-            {isSubmitting ? "Processing..." : booking.paymentMethod === 'upi' ? "I've Paid" : "Confirm Appointment"}
+            {isSubmitting ? "Processing..." : booking.paymentMethod === 'upi' ? "Confirm & Book Appointment" : "Confirm Appointment"}
           </Button>
         </div>
       </div>
