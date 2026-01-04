@@ -19,7 +19,7 @@ const InstallPrompt: React.FC = () => {
     setIsStandalone(standalone);
 
     // Detect iOS devices
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
     setIsIOS(iOS);
 
     // Check if user previously dismissed the prompt
