@@ -26,6 +26,7 @@ const Index = () => {
     <LanguageProvider>
       <div className="min-h-screen bg-background">
         <Header />
+        <InstallPrompt />
         <HeroSection onBookingClick={() => setIsBookingOpen(true)} />
         <MissionSection />
         <ChargesSection />
@@ -39,7 +40,6 @@ const Index = () => {
         />
         
         <FloatingButtons />
-        <InstallPrompt />
       </div>
     </LanguageProvider>
   );

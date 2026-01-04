@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Download, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { X, Download, Smartphone } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -11,104 +10,153 @@ interface BeforeInstallPromptEvent extends Event {
 const InstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const { toast } = useToast();
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
-    };
+    // Check if already installed (running in standalone mode)
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    setIsStandalone(standalone);
 
-    window.addEventListener('beforeinstallprompt', handler);
+    // Detect iOS devices
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(iOS);
 
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowPrompt(false);
+    // Check if user previously dismissed the prompt
+    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    const dismissedTime = dismissed ? parseInt(dismissed) : 0;
+    const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+
+    // Show prompt again after 7 days
+    if (dismissed && daysSinceDismissed < 7) {
+      return;
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    // Listen for the beforeinstallprompt event (Android/Chrome)
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(promptEvent);
+      
+      // Show prompt after a short delay for better UX
+      setTimeout(() => {
+        setShowPrompt(true);
+      }, 2000);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // For iOS, show custom prompt if not already installed
+    if (iOS && !standalone && !dismissed) {
+      setTimeout(() => {
+        setShowPrompt(true);
+      }, 2000);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      toast({
-        title: "App Installed!",
-        description: "You can now access Dr. Deogade Clinic from your home screen.",
-      });
+    if (!deferredPrompt && !isIOS) {
+      return;
     }
-    
-    setDeferredPrompt(null);
-    setShowPrompt(false);
+
+    if (deferredPrompt) {
+      // Show the install prompt
+      deferredPrompt.prompt();
+      
+      // Wait for the user's response
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      }
+      
+      setDeferredPrompt(null);
+      setShowPrompt(false);
+    }
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    // Remember dismissal for 7 days
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
-  // Don't show if dismissed recently (within 7 days)
-  useEffect(() => {
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed) {
-      const dismissedTime = parseInt(dismissed);
-      const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismissed < 7) {
-        setShowPrompt(false);
-      }
-    }
-  }, []);
+  // Don't show if already installed
+  if (isStandalone) {
+    return null;
+  }
 
-  if (!showPrompt || !deferredPrompt) return null;
+  // Don't show if not ready
+  if (!showPrompt) {
+    return null;
+  }
 
-  return (
-    <div className="fixed bottom-24 left-4 right-4 md:left-auto md:right-8 md:w-96 z-40 animate-slide-in-right">
-      <div className="bg-card border-2 border-primary/20 rounded-lg shadow-lg p-4 backdrop-blur-sm">
-        <button
-          onClick={handleDismiss}
-          className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Dismiss"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        
-        <div className="flex items-start gap-3 mb-3">
-          <div className="bg-primary/10 p-2 rounded-lg">
-            <Download className="h-6 w-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground mb-1">
-              Install Dr. Deogade Clinic
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Get quick access and work offline. Install our app on your device!
-            </p>
+  // iOS Install Instructions
+  if (isIOS) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg animate-in slide-in-from-top duration-500">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-1">
+              <Smartphone className="h-5 w-5" />
+            </div>
+            <div className="flex-1 text-sm">
+              <p className="font-semibold mb-1">Install Dr. Deogade Clinic App</p>
+              <p className="text-xs text-primary-foreground/90">
+                Tap <span className="inline-flex items-center px-1 py-0.5 mx-1 bg-primary-foreground/20 rounded">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                  </svg>
+                </span> then "Add to Home Screen"
+              </p>
+            </div>
+            <button
+              onClick={handleDismiss}
+              className="flex-shrink-0 hover:bg-primary-foreground/20 rounded-full p-1 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Button
-            onClick={handleInstallClick}
-            className="flex-1"
-            size="sm"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Install App
-          </Button>
-          <Button
-            onClick={handleDismiss}
-            variant="outline"
-            size="sm"
-          >
-            Not Now
-          </Button>
+      </div>
+    );
+  }
+
+  // Android/Chrome Install Prompt
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg animate-in slide-in-from-top duration-500">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 bg-primary-foreground/20 rounded-lg flex items-center justify-center">
+              <Download className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">Install Dr. Deogade Clinic</p>
+            <p className="text-xs text-primary-foreground/90">Quick access, offline support, faster booking</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleInstallClick}
+              size="sm"
+              variant="secondary"
+              className="text-xs font-semibold"
+            >
+              Install
+            </Button>
+            <button
+              onClick={handleDismiss}
+              className="hover:bg-primary-foreground/20 rounded-full p-1.5 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

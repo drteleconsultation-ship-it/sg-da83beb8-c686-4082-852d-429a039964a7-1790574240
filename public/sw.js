@@ -1,9 +1,11 @@
-const CACHE_NAME = 'deogade-clinic-v2';
+const CACHE_NAME = 'deogade-clinic-v3';
 const urlsToCache = [
   '/',
+  '/index.html',
   '/manifest.json',
   '/logo-192.jpg',
-  '/logo-512.jpg'
+  '/logo-512.jpg',
+  '/favicon.ico'
 ];
 
 // Install event - cache core assets
