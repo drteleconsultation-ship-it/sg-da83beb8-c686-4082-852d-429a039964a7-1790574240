@@ -31,3 +31,4 @@ build/
 .turbo/
 out/
 .vercel
+.env*.local

@@ -215,25 +215,33 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
   const generateUPILink = (app?: string) => {
     const upiId = '7415379845@okbizaxis';
-    const payeeName = 'Medical Clinic';
+    const payeeName = 'Dr Deogade Clinic';
     const transactionNote = `${selectedService?.name} - ${booking.name}`;
-    const transactionId = `CLINIC_${Date.now()}`;
+    const transactionId = `CLINIC${Date.now()}`;
     
-    const params = `pa=${upiId}&pn=${encodeURIComponent(payeeName)}&tn=${encodeURIComponent(transactionNote)}&am=${amount}&cu=INR&tid=${transactionId}`;
+    // Standard UPI URL format - more compatible with all apps
+    const params = new URLSearchParams({
+      pa: upiId,
+      pn: payeeName,
+      tn: transactionNote,
+      am: amount.toString(),
+      cu: 'INR',
+      tr: transactionId
+    }).toString();
     
-    // For web/PWA compatibility, use intent URLs for specific apps
+    // Different apps use different URL schemes
     switch(app) {
       case 'gpay':
-        // Google Pay intent URL for web
-        return `tez://upi/pay?${params}`;
+        // Google Pay uses gpay:// or tez:// scheme
+        return `gpay://upi/pay?${params}`;
       case 'phonepe':
-        // PhonePe intent URL
+        // PhonePe scheme
         return `phonepe://pay?${params}`;
       case 'paytm':
-        // Paytm intent URL
-        return `paytmmp://upi/pay?${params}`;
+        // Paytm scheme
+        return `paytmmp://pay?${params}`;
       default:
-        // Generic UPI intent - works with all UPI apps
+        // Generic UPI intent that works with most apps
         return `upi://pay?${params}`;
     }
   };
@@ -1073,6 +1081,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
                       <p className="text-xs text-muted-foreground text-center">
                         Tap any button above to open the app and complete payment
                       </p>
+                      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-3 mt-2">
+                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                          💡 <strong>Tip:</strong> If the app doesn't open, use the UPI ID below to pay manually
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">

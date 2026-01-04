@@ -53,7 +53,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onBookingClick }) => {
             <Button 
               variant="outline"
               size="lg"
-              className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-primary"
+              className="text-lg px-8 py-4 border-2 border-white text-white bg-transparent hover:bg-white hover:text-primary"
               asChild
             >
               <a href="https://wa.me/917415379845" target="_blank" rel="noopener noreferrer">
