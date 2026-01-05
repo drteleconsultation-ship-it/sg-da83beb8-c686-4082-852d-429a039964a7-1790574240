@@ -295,189 +295,158 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
   const handlePaymentConfirmation = async () => {
     console.log('=== BOOKING CONFIRMATION STARTED ===');
-    console.log('Payment method:', booking.paymentMethod);
-    console.log('Payment screenshot:', booking.paymentScreenshot?.name);
+    console.log('Payment method:', paymentMethod);
+    console.log('Payment screenshot:', paymentScreenshot?.name);
+    console.log('Medical documents:', medicalDocuments.map(f => f.name));
     
-    // Validate payment screenshot for UPI payments
-    if (booking.paymentMethod === 'upi' && !booking.paymentScreenshot) {
-      console.error('UPI payment selected but no screenshot provided');
-      toast({
-        title: "Payment Screenshot Required",
-        description: "Please upload a screenshot of your UPI payment before confirming.",
-        variant: "destructive",
-      });
+    if (!isPaymentConfirmed) {
+      console.log('Setting payment confirmed...');
+      setIsPaymentConfirmed(true);
       return;
     }
 
-    console.log('Validation passed, setting payment confirmed...');
-    setPaymentConfirmed(true);
     setIsSubmitting(true);
 
-    // Add timeout protection - force completion after 30 seconds
-    const timeoutId = setTimeout(() => {
-      console.error('⏱️ BOOKING TIMEOUT - Force completing after 30 seconds');
-      setIsSubmitting(false);
-      toast({
-        title: "Booking Timeout",
-        description: "The booking is taking too long. Please try again or contact us via WhatsApp.",
-        variant: "destructive",
-      });
-    }, 30000);
-
     try {
-      // Determine appointment status based on payment method
-      const appointmentStatus = booking.paymentMethod === 'upi' && booking.paymentScreenshot
-        ? 'confirmed'  // Auto-confirm if UPI payment screenshot is provided
-        : 'pending';   // Pending if pay-later or no screenshot
+      console.log('Validation passed, proceeding with booking...');
 
-      console.log('Appointment status will be:', appointmentStatus);
+      const uploadedFileUrls: string[] = [];
+      let paymentScreenshotUrl: string | null = null;
 
-      // Save appointment to database (without file uploads for now to test)
+      // Upload medical documents if any
+      if (medicalDocuments.length > 0) {
+        console.log('Starting medical documents upload...');
+        for (const file of medicalDocuments) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `${fileName}`;
+
+          console.log('Uploading file:', filePath);
+
+          const { error: uploadError } = await supabase.storage
+            .from('medical-documents')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw uploadError;
+          }
+
+          uploadedFileUrls.push(filePath);
+          console.log('✅ File uploaded successfully:', filePath);
+        }
+      }
+
+      // Upload payment screenshot if UPI payment
+      if (paymentMethod === 'upi' && paymentScreenshot) {
+        console.log('Uploading payment screenshot...');
+        const fileExt = paymentScreenshot.name.split('.').pop();
+        const fileName = `payment_${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('medical-documents')
+          .upload(filePath, paymentScreenshot);
+
+        if (uploadError) {
+          console.error('Payment screenshot upload error:', uploadError);
+          throw uploadError;
+        }
+
+        paymentScreenshotUrl = filePath;
+        uploadedFileUrls.push(filePath);
+        console.log('✅ Payment screenshot uploaded:', filePath);
+      }
+
+      // Save appointment to database
       const appointmentData = {
-        patient_name: booking.name,
-        age: booking.age,
-        gender: booking.gender,
-        whatsapp: booking.whatsapp,
-        email: booking.email || null,
-        reason: booking.reason,
-        consultation_type: booking.consultationType,
-        service_type: selectedService?.name || '',
-        appointment_date: booking.date!.toISOString().split('T')[0],
-        time_slot: booking.timeSlot,
-        status: appointmentStatus,
-        payment_method: booking.paymentMethod,
-        attachment_urls: [] // Empty for now - will add file upload back once basic booking works
+        patient_name: formData.name,
+        age: formData.age,
+        gender: formData.gender,
+        whatsapp: formData.whatsapp,
+        email: formData.email || null,
+        reason: formData.reason,
+        consultation_type: consultationType,
+        service_type: selectedService,
+        appointment_date: selectedDate,
+        time_slot: selectedTimeSlot,
+        status: 'pending',
+        payment_method: paymentMethod,
+        attachment_urls: uploadedFileUrls,
       };
 
       console.log('Saving appointment to database:', appointmentData);
 
-      const { data: savedAppointment, error: dbError } = await supabase
+      const { data: appointment, error: dbError } = await supabase
         .from('appointments')
         .insert([appointmentData])
         .select()
         .single();
 
       if (dbError) {
-        console.error('❌ DATABASE ERROR:', dbError);
-        console.error('Error code:', dbError.code);
-        console.error('Error message:', dbError.message);
-        console.error('Error details:', dbError.details);
+        console.error('Database error:', dbError);
         throw new Error(`Failed to save appointment: ${dbError.message}`);
       }
 
-      console.log('✅ Appointment saved successfully:', savedAppointment);
-
-      // Clear timeout since booking succeeded
-      clearTimeout(timeoutId);
+      console.log('✅ Appointment saved successfully:', appointment);
 
       // Send confirmation emails
       try {
         console.log('📧 Sending confirmation emails...');
-        const emailPayload = {
-          name: booking.name,
-          age: booking.age,
-          gender: booking.gender,
-          whatsapp: booking.whatsapp,
-          email: booking.email,
-          reason: booking.reason,
-          consultationType: booking.consultationType,
-          consultationMode: booking.consultationType === 'online' ? booking.consultationMode : undefined,
-          serviceName: selectedService?.name || '',
-          serviceCharge: selectedService?.price || 0,
-          date: format(booking.date!, 'PPP'),
-          timeSlot: booking.timeSlot,
-          paymentMethod: booking.paymentMethod,
-          suggestions: booking.suggestions || undefined,
-        };
-        
-        console.log('Email payload:', emailPayload);
+        const { error: emailError } = await supabase.functions.invoke(
+          'send-booking-confirmation',
+          {
+            body: {
+              appointment: appointment,
+              patientEmail: formData.email || null,
+            }
+          }
+        );
 
-        const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
-          body: emailPayload,
-        });
-
-        if (emailResponse.error) {
-          console.error('⚠️ Email sending error:', emailResponse.error);
-          toast({
-            title: "Appointment Confirmed!",
-            description: "Your appointment is booked, but email confirmation may be delayed.",
-          });
+        if (emailError) {
+          console.warn('Email sending failed (non-critical):', emailError);
         } else {
           console.log('✅ Email confirmation sent successfully');
-          toast({
-            title: "Appointment Confirmed! 🎉",
-            description: "You will receive a confirmation email shortly.",
-          });
         }
       } catch (emailError) {
-        console.error('⚠️ Email function error:', emailError);
-        toast({
-          title: "Appointment Confirmed!",
-          description: "Your appointment is booked. You'll be contacted via WhatsApp.",
-        });
+        console.warn('Email function error (non-critical):', emailError);
       }
-      
-      console.log('🎉 Triggering confetti animation...');
-      triggerConfetti();
-      
-      // Move to confirmation step
-      console.log('📱 Moving to confirmation step...');
-      setCurrentStep('confirmation');
 
-      // Reset form after delay
-      setTimeout(() => {
-        console.log('🔄 Resetting form and closing modal...');
-        setBooking({
-          name: '',
-          age: '',
-          gender: '',
-          whatsapp: '',
-          email: '',
-          reason: '',
-          consultationType: 'clinic',
-          consultationMode: 'chat',
-          serviceType: '',
-          date: undefined,
-          timeSlot: '',
-          medicalDocuments: [],
-          paymentScreenshot: null,
-          paymentMethod: 'upi',
-          suggestions: '',
-        });
-        setCurrentStep('form');
-        setPaymentConfirmed(false);
-        setCaptchaVerified(false);
-        
-        onClose();
-      }, 3000);
-    } catch (error) {
-      // Clear timeout on error
-      clearTimeout(timeoutId);
+      // Show success
+      console.log('🎉 Triggering confetti animation...');
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      setShowSuccess(true);
       
+      toast({
+        title: "Appointment Confirmed! 🎉",
+        description: "You'll receive a WhatsApp confirmation shortly.",
+      });
+
+      setTimeout(() => {
+        onClose();
+        resetForm();
+      }, 3000);
+
+    } catch (error) {
       console.error('=== ❌ BOOKING ERROR ===');
       console.error('Error type:', typeof error);
       console.error('Error details:', error);
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      
-      // Check if it's a Supabase error
-      if (error && typeof error === 'object' && 'code' in error) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        console.error('Supabase error code:', (error as any).code);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        console.error('Supabase error details:', (error as any).details);
-      }
       
       toast({
         title: "Booking Failed",
-        description: error instanceof Error ? error.message : "There was an error processing your appointment. Please try again or contact us directly via WhatsApp.",
+        description: error instanceof Error ? error.message : "Please try again or contact us via WhatsApp",
         variant: "destructive",
       });
-      setPaymentConfirmed(false);
     } finally {
       console.log('=== BOOKING PROCESS COMPLETED ===');
       setIsSubmitting(false);
-      clearTimeout(timeoutId);
     }
   };
 
