@@ -423,8 +423,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         time_slot: booking.timeSlot,
         status: appointmentStatus,
         payment_method: booking.paymentMethod,
-        attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : [],
-        payment_screenshot_url: paymentScreenshotUrl || null
+        attachment_urls: paymentScreenshotUrl 
+          ? [...attachmentUrls, paymentScreenshotUrl]
+          : attachmentUrls.length > 0 
+            ? attachmentUrls 
+            : []
       };
 
       console.log('Saving appointment to database:', appointmentData);
@@ -542,7 +545,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       
       // Check if it's a Supabase error
       if (error && typeof error === 'object' && 'code' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error code:', (error as any).code);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error details:', (error as any).details);
       }
       
