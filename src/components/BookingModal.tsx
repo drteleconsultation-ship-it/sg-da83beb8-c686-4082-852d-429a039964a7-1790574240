@@ -414,6 +414,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       // Send confirmation emails
       try {
         console.log('📧 Sending confirmation emails...');
+        
+        // Prepare attachment URLs for email
+        const attachmentUrls = uploadedFileUrls.length > 0 ? uploadedFileUrls : undefined;
+        
+        // Find the payment screenshot URL if it exists
+        const paymentScreenshotUrl = booking.paymentMethod === 'upi' && uploadedFileUrls.length > 0
+          ? uploadedFileUrls[uploadedFileUrls.length - 1] // Last uploaded file is payment screenshot
+          : undefined;
+        
         const emailPayload = {
           name: booking.name,
           age: booking.age,
@@ -428,7 +437,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           date: format(booking.date!, 'PPP'),
           timeSlot: booking.timeSlot,
           paymentMethod: booking.paymentMethod,
-          attachmentUrls: uploadedFileUrls.length > 0 ? uploadedFileUrls : undefined,
+          attachmentUrls: attachmentUrls,
+          paymentScreenshotUrl: paymentScreenshotUrl,
           suggestions: booking.suggestions || undefined,
         };
 
