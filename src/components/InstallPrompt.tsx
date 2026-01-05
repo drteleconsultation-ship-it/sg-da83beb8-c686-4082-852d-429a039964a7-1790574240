@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -41,7 +42,7 @@ const InstallPrompt: React.FC = () => {
       // Show prompt after a short delay for better UX
       setTimeout(() => {
         setShowPrompt(true);
-      }, 2000);
+      }, 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -50,7 +51,7 @@ const InstallPrompt: React.FC = () => {
     if (iOS && !standalone && !dismissed) {
       setTimeout(() => {
         setShowPrompt(true);
-      }, 2000);
+      }, 3000);
     }
 
     return () => {
@@ -89,77 +90,125 @@ const InstallPrompt: React.FC = () => {
     return null;
   }
 
-  // Don't show if not ready
-  if (!showPrompt) {
-    return null;
-  }
-
-  // iOS Install Instructions
+  // iOS Install Instructions Modal
   if (isIOS) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg animate-in slide-in-from-top duration-500">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-1">
-              <Smartphone className="h-5 w-5" />
+      <Dialog open={showPrompt} onOpenChange={handleDismiss}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-primary" />
+              Install Dr. Deogade Clinic
+            </DialogTitle>
+            <DialogDescription>
+              Add to your home screen for quick access
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center justify-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <Download className="h-8 w-8 text-primary" />
+              </div>
             </div>
-            <div className="flex-1 text-sm">
-              <p className="font-semibold mb-1">Install Dr. Deogade Clinic App</p>
-              <p className="text-xs text-primary-foreground/90">
-                Tap <span className="inline-flex items-center px-1 py-0.5 mx-1 bg-primary-foreground/20 rounded">
+            
+            <div className="space-y-3 text-sm">
+              <p className="font-semibold text-center">How to install:</p>
+              <ol className="space-y-2 list-decimal list-inside text-muted-foreground">
+                <li>Tap the Share button <span className="inline-flex items-center px-1.5 py-0.5 mx-1 bg-muted rounded font-mono text-xs">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
                   </svg>
-                </span> then "Add to Home Screen"
+                </span></li>
+                <li>Scroll down and tap "Add to Home Screen"</li>
+                <li>Tap "Add" to confirm</li>
+              </ol>
+            </div>
+
+            <div className="bg-primary/5 p-3 rounded-lg">
+              <p className="text-xs text-center text-muted-foreground">
+                ✨ Quick access • Offline support • Faster booking
               </p>
             </div>
-            <button
-              onClick={handleDismiss}
-              className="flex-shrink-0 hover:bg-primary-foreground/20 rounded-full p-1 transition-colors"
-              aria-label="Dismiss"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
-        </div>
-      </div>
+
+          <div className="flex gap-2">
+            <Button onClick={handleDismiss} variant="outline" className="flex-1">
+              Maybe Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
-  // Android/Chrome Install Prompt
+  // Android/Chrome Install Prompt Modal
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg animate-in slide-in-from-top duration-500">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-primary-foreground/20 rounded-lg flex items-center justify-center">
-              <Download className="h-5 w-5" />
+    <Dialog open={showPrompt} onOpenChange={handleDismiss}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5 text-primary" />
+            Install Dr. Deogade Clinic
+          </DialogTitle>
+          <DialogDescription>
+            Get the app for a better experience
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="flex items-center justify-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+              <img src="/logo-192.jpg" alt="Dr. Deogade Clinic" className="w-16 h-16 rounded-xl" />
             </div>
           </div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">Install Dr. Deogade Clinic</p>
-            <p className="text-xs text-primary-foreground/90">Quick access, offline support, faster booking</p>
+          
+          <div className="space-y-2 text-center">
+            <h3 className="font-semibold text-lg">Install Our App</h3>
+            <p className="text-sm text-muted-foreground">
+              Book appointments faster with our progressive web app
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleInstallClick}
-              size="sm"
-              variant="secondary"
-              className="text-xs font-semibold"
-            >
-              Install
-            </Button>
-            <button
-              onClick={handleDismiss}
-              className="hover:bg-primary-foreground/20 rounded-full p-1.5 transition-colors"
-              aria-label="Dismiss"
-            >
-              <X className="h-4 w-4" />
-            </button>
+
+          <div className="grid grid-cols-3 gap-3 py-2">
+            <div className="text-center">
+              <div className="w-10 h-10 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-1">
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <p className="text-xs font-medium">Fast</p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-1">
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                </svg>
+              </div>
+              <p className="text-xs font-medium">Offline</p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-1">
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-xs font-medium">Home Screen</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="flex gap-2">
+          <Button onClick={handleDismiss} variant="outline" className="flex-1">
+            Not Now
+          </Button>
+          <Button onClick={handleInstallClick} variant="medical" className="flex-1">
+            <Download className="w-4 h-4 mr-2" />
+            Install
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

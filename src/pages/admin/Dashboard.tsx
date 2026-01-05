@@ -99,7 +99,38 @@ const AdminDashboard: React.FC = () => {
       return;
     }
     fetchAppointments();
-  }, [navigate]);
+
+    // Set up real-time subscription for appointments
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        (payload) => {
+          console.log('Appointment change detected:', payload);
+          // Refresh appointments when any change occurs
+          fetchAppointments();
+          
+          // Show toast notification for new appointments
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New Appointment! 🎉",
+              description: `${payload.new.patient_name} booked an appointment`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [navigate, toast]);
 
   useEffect(() => {
     filterAppointments();

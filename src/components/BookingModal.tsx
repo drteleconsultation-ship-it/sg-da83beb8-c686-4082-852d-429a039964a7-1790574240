@@ -378,19 +378,23 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         time_slot: booking.timeSlot,
         status: 'pending',
         payment_method: booking.paymentMethod,
-        attachment_urls: attachmentUrls
+        attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : []
       };
 
-      const { error: dbError } = await supabase
+      console.log('Saving appointment to database:', appointmentData);
+
+      const { data: savedAppointment, error: dbError } = await supabase
         .from('appointments')
-        .insert([appointmentData]);
+        .insert([appointmentData])
+        .select()
+        .single();
 
       if (dbError) {
-        console.error('Database error: Failed to save appointment');
+        console.error('Database error:', dbError);
         throw new Error('Failed to save appointment to database');
       }
 
-      console.log('Appointment saved successfully');
+      console.log('Appointment saved successfully:', savedAppointment);
 
       // Send confirmation emails
       const response = await supabase.functions.invoke('send-booking-confirmation', {
