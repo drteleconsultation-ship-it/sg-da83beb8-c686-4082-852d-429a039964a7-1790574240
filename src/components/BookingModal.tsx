@@ -295,28 +295,42 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
   const handlePaymentConfirmation = async () => {
     console.log('=== BOOKING CONFIRMATION STARTED ===');
-    console.log('Payment method:', paymentMethod);
-    console.log('Payment screenshot:', paymentScreenshot?.name);
-    console.log('Medical documents:', medicalDocuments.map(f => f.name));
+    console.log('Payment method:', booking.paymentMethod);
+    console.log('Payment screenshot:', booking.paymentScreenshot?.name);
+    console.log('Medical documents:', booking.medicalDocuments.map(f => f.name));
     
-    if (!isPaymentConfirmed) {
-      console.log('Setting payment confirmed...');
-      setIsPaymentConfirmed(true);
+    // Validate payment screenshot for UPI payments
+    if (booking.paymentMethod === 'upi' && !booking.paymentScreenshot) {
+      toast({
+        title: "Payment Screenshot Required",
+        description: "Please upload your payment screenshot before confirming.",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsSubmitting(true);
 
+    // Create a timeout to prevent infinite hanging
+    const timeoutId = setTimeout(() => {
+      console.log('⏱️ BOOKING TIMEOUT - Force completing after 30 seconds');
+      setIsSubmitting(false);
+      toast({
+        title: "Booking Timeout",
+        description: "The booking is taking longer than expected. Please try again or contact us via WhatsApp.",
+        variant: "destructive",
+      });
+    }, 30000); // 30 second timeout
+
     try {
       console.log('Validation passed, proceeding with booking...');
 
       const uploadedFileUrls: string[] = [];
-      let paymentScreenshotUrl: string | null = null;
 
       // Upload medical documents if any
-      if (medicalDocuments.length > 0) {
+      if (booking.medicalDocuments.length > 0) {
         console.log('Starting medical documents upload...');
-        for (const file of medicalDocuments) {
+        for (const file of booking.medicalDocuments) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${Math.random()}.${fileExt}`;
           const filePath = `${fileName}`;
@@ -329,7 +343,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
-            throw uploadError;
+            throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
           }
 
           uploadedFileUrls.push(filePath);
@@ -338,41 +352,45 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       }
 
       // Upload payment screenshot if UPI payment
-      if (paymentMethod === 'upi' && paymentScreenshot) {
+      if (booking.paymentMethod === 'upi' && booking.paymentScreenshot) {
         console.log('Uploading payment screenshot...');
-        const fileExt = paymentScreenshot.name.split('.').pop();
+        const fileExt = booking.paymentScreenshot.name.split('.').pop();
         const fileName = `payment_${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('medical-documents')
-          .upload(filePath, paymentScreenshot);
+          .upload(filePath, booking.paymentScreenshot);
 
         if (uploadError) {
           console.error('Payment screenshot upload error:', uploadError);
-          throw uploadError;
+          throw new Error(`Failed to upload payment screenshot: ${uploadError.message}`);
         }
 
-        paymentScreenshotUrl = filePath;
         uploadedFileUrls.push(filePath);
         console.log('✅ Payment screenshot uploaded:', filePath);
       }
 
+      // Determine appointment status based on payment method
+      const appointmentStatus = booking.paymentMethod === 'upi' ? 'pending' : 'confirmed';
+
       // Save appointment to database
       const appointmentData = {
-        patient_name: formData.name,
-        age: formData.age,
-        gender: formData.gender,
-        whatsapp: formData.whatsapp,
-        email: formData.email || null,
-        reason: formData.reason,
-        consultation_type: consultationType,
-        service_type: selectedService,
-        appointment_date: selectedDate,
-        time_slot: selectedTimeSlot,
-        status: 'pending',
-        payment_method: paymentMethod,
-        attachment_urls: uploadedFileUrls,
+        patient_name: booking.name,
+        age: parseInt(booking.age),
+        gender: booking.gender,
+        whatsapp: booking.whatsapp,
+        email: booking.email || null,
+        reason: booking.reason,
+        consultation_type: booking.consultationType,
+        consultation_mode: booking.consultationType === 'online' ? booking.consultationMode : null,
+        service_type: selectedService?.name || '',
+        appointment_date: format(booking.date!, 'yyyy-MM-dd'),
+        time_slot: booking.timeSlot,
+        status: appointmentStatus,
+        payment_method: booking.paymentMethod,
+        suggestions: booking.suggestions || null,
+        attachment_urls: uploadedFileUrls.length > 0 ? uploadedFileUrls : []
       };
 
       console.log('Saving appointment to database:', appointmentData);
@@ -384,7 +402,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         .single();
 
       if (dbError) {
-        console.error('Database error:', dbError);
+        console.error('❌ DATABASE ERROR:', dbError);
+        console.error('Database error code:', dbError.code);
+        console.error('Database error message:', dbError.message);
+        console.error('Database error details:', dbError.details);
         throw new Error(`Failed to save appointment: ${dbError.message}`);
       }
 
@@ -398,7 +419,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           {
             body: {
               appointment: appointment,
-              patientEmail: formData.email || null,
+              patientEmail: booking.email || null,
             }
           }
         );
@@ -420,17 +441,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         origin: { y: 0.6 }
       });
 
-      setShowSuccess(true);
-      
       toast({
         title: "Appointment Confirmed! 🎉",
-        description: "You'll receive a WhatsApp confirmation shortly.",
+        description: "Your appointment is booked. You'll receive a WhatsApp confirmation shortly.",
       });
 
-      setTimeout(() => {
-        onClose();
-        resetForm();
-      }, 3000);
+      // Move to confirmation step
+      setCurrentStep('confirmation');
 
     } catch (error) {
       console.error('=== ❌ BOOKING ERROR ===');
@@ -438,6 +455,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       console.error('Error details:', error);
       console.error('Error message:', error instanceof Error ? error.message : String(error));
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      
+      // Check if it's a Supabase error
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (error && typeof error === 'object' && 'code' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error('Supabase error code:', (error as any).code);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.error('Supabase error details:', (error as any).details);
+      }
       
       toast({
         title: "Booking Failed",
@@ -447,6 +473,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
     } finally {
       console.log('=== BOOKING PROCESS COMPLETED ===');
       setIsSubmitting(false);
+      clearTimeout(timeoutId);
     }
   };
 
