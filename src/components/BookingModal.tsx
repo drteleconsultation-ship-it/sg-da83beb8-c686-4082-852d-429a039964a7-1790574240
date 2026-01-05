@@ -414,23 +414,42 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       // Send confirmation emails
       try {
         console.log('📧 Sending confirmation emails...');
-        const { error: emailError } = await supabase.functions.invoke(
+        const emailPayload = {
+          name: booking.name,
+          age: booking.age,
+          gender: booking.gender,
+          whatsapp: booking.whatsapp,
+          email: booking.email || undefined,
+          reason: booking.reason,
+          consultationType: booking.consultationType,
+          consultationMode: booking.consultationType === 'online' ? booking.consultationMode : undefined,
+          serviceName: selectedService?.name || '',
+          serviceCharge: amount,
+          date: format(booking.date!, 'PPP'),
+          timeSlot: booking.timeSlot,
+          paymentMethod: booking.paymentMethod,
+          attachmentUrls: uploadedFileUrls.length > 0 ? uploadedFileUrls : undefined,
+          suggestions: booking.suggestions || undefined,
+        };
+
+        console.log('Email payload:', emailPayload);
+
+        const { data: emailResponse, error: emailError } = await supabase.functions.invoke(
           'send-booking-confirmation',
           {
-            body: {
-              appointment: appointment,
-              patientEmail: booking.email || null,
-            }
+            body: emailPayload
           }
         );
 
         if (emailError) {
           console.warn('Email sending failed (non-critical):', emailError);
+          console.error('Email error details:', emailError);
         } else {
-          console.log('✅ Email confirmation sent successfully');
+          console.log('✅ Email confirmation sent successfully:', emailResponse);
         }
       } catch (emailError) {
         console.warn('Email function error (non-critical):', emailError);
+        console.error('Email catch error:', emailError);
       }
 
       // Show success
