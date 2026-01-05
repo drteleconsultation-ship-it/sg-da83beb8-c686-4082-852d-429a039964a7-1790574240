@@ -377,7 +377,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       // Save appointment to database
       const appointmentData = {
         patient_name: booking.name,
-        age: parseInt(booking.age),
+        age: booking.age, // Send as string to match DB schema (was parseInt)
         gender: booking.gender,
         whatsapp: booking.whatsapp,
         email: booking.email || null,
