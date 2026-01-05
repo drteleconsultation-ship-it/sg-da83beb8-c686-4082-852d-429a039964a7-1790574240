@@ -325,91 +325,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
     }, 30000);
 
     try {
-      console.log('Starting file uploads...');
-      const attachmentUrls: string[] = [];
-      
-      // Upload medical documents
-      if (booking.medicalDocuments.length > 0) {
-        console.log(`Uploading ${booking.medicalDocuments.length} medical documents...`);
-        setUploadingFile(true);
-        
-        for (const file of booking.medicalDocuments) {
-          try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `medical-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            console.log(`Uploading medical document: ${fileName}`);
-            const { error: uploadError } = await supabase.storage
-              .from('medical-documents')
-              .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: false
-              });
-
-            if (uploadError) {
-              console.error('Medical document upload error:', uploadError);
-              toast({
-                title: "File Upload Warning",
-                description: `Could not upload ${file.name}. Continuing with booking.`,
-              });
-            } else {
-              console.log(`Successfully uploaded: ${fileName}`);
-              attachmentUrls.push(filePath);
-            }
-          } catch (fileError) {
-            console.error('File upload exception:', fileError);
-          }
-        }
-        
-        setUploadingFile(false);
-        console.log(`Medical documents uploaded: ${attachmentUrls.length} files`);
-      }
-      
-      // Upload payment screenshot separately with identifiable prefix
-      let paymentScreenshotUrl: string | undefined;
-      if (booking.paymentScreenshot) {
-        console.log('Uploading payment screenshot...');
-        setUploadingFile(true);
-        
-        try {
-          const file = booking.paymentScreenshot;
-          const fileExt = file.name.split('.').pop();
-          const fileName = `payment-screenshot-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-          console.log(`Payment screenshot filename: ${fileName}`);
-          const { error: uploadError } = await supabase.storage
-            .from('medical-documents')
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (uploadError) {
-            console.error('Payment screenshot upload error:', uploadError);
-            toast({
-              title: "Payment Screenshot Upload Warning",
-              description: "Could not upload payment screenshot. Booking will continue.",
-            });
-          } else {
-            paymentScreenshotUrl = fileName;
-            console.log('Payment screenshot uploaded successfully:', fileName);
-          }
-        } catch (screenshotError) {
-          console.error('Payment screenshot exception:', screenshotError);
-        }
-        
-        setUploadingFile(false);
-      }
-
       // Determine appointment status based on payment method
-      const appointmentStatus = booking.paymentMethod === 'upi' && paymentScreenshotUrl
+      const appointmentStatus = booking.paymentMethod === 'upi' && booking.paymentScreenshot
         ? 'confirmed'  // Auto-confirm if UPI payment screenshot is provided
         : 'pending';   // Pending if pay-later or no screenshot
 
       console.log('Appointment status will be:', appointmentStatus);
 
-      // Save appointment to database
+      // Save appointment to database (without file uploads for now to test)
       const appointmentData = {
         patient_name: booking.name,
         age: booking.age,
@@ -423,11 +346,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         time_slot: booking.timeSlot,
         status: appointmentStatus,
         payment_method: booking.paymentMethod,
-        attachment_urls: paymentScreenshotUrl 
-          ? [...attachmentUrls, paymentScreenshotUrl]
-          : attachmentUrls.length > 0 
-            ? attachmentUrls 
-            : []
+        attachment_urls: [] // Empty for now - will add file upload back once basic booking works
       };
 
       console.log('Saving appointment to database:', appointmentData);
@@ -468,8 +387,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           date: format(booking.date!, 'PPP'),
           timeSlot: booking.timeSlot,
           paymentMethod: booking.paymentMethod,
-          attachmentUrls: attachmentUrls,
-          paymentScreenshotUrl: paymentScreenshotUrl,
           suggestions: booking.suggestions || undefined,
         };
         
@@ -545,9 +462,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       
       // Check if it's a Supabase error
       if (error && typeof error === 'object' && 'code' in error) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error code:', (error as any).code);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error details:', (error as any).details);
       }
       
