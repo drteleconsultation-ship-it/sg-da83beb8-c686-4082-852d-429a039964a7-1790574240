@@ -1281,7 +1281,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           <Button
             type="button"
             variant="medical"
-            onClick={handlePaymentConfirmation}
+            onClick={() => {
+              console.log('=== CONFIRM BUTTON CLICKED ===');
+              console.log('Current state:', {
+                isSubmitting,
+                paymentMethod: booking.paymentMethod,
+                hasPaymentScreenshot: !!booking.paymentScreenshot,
+                bookingData: booking
+              });
+              handlePaymentConfirmation();
+            }}
             disabled={isSubmitting}
             className="flex-1"
           >
