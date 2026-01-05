@@ -364,6 +364,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         setUploadingFile(false);
       }
 
+      // Determine appointment status based on payment method
+      const appointmentStatus = booking.paymentMethod === 'upi' && booking.paymentScreenshot 
+        ? 'confirmed'  // Auto-confirm if UPI payment screenshot is provided
+        : 'pending';   // Pending if pay-later or no screenshot
+
       // Save appointment to database
       const appointmentData = {
         patient_name: booking.name,
@@ -376,9 +381,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         service_type: selectedService?.name || '',
         appointment_date: booking.date!.toISOString().split('T')[0],
         time_slot: booking.timeSlot,
-        status: 'pending',
+        status: appointmentStatus,
         payment_method: booking.paymentMethod,
-        attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : []
+        attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : [],
+        payment_screenshot_url: paymentScreenshotUrl || null
       };
 
       console.log('Saving appointment to database:', appointmentData);
@@ -391,47 +397,62 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
       if (dbError) {
         console.error('Database error:', dbError);
-        throw new Error('Failed to save appointment to database');
+        throw new Error(`Failed to save appointment: ${dbError.message}`);
       }
 
       console.log('Appointment saved successfully:', savedAppointment);
 
       // Send confirmation emails
-      const response = await supabase.functions.invoke('send-booking-confirmation', {
-        body: {
-          name: booking.name,
-          age: booking.age,
-          gender: booking.gender,
-          whatsapp: booking.whatsapp,
-          email: booking.email,
-          reason: booking.reason,
-          consultationType: booking.consultationType,
-          consultationMode: booking.consultationType === 'online' ? booking.consultationMode : undefined,
-          serviceName: selectedService?.name || '',
-          serviceCharge: selectedService?.price || 0,
-          date: format(booking.date!, 'PPP'),
-          timeSlot: booking.timeSlot,
-          paymentMethod: booking.paymentMethod,
-          attachmentUrls: attachmentUrls,
-          paymentScreenshotUrl: paymentScreenshotUrl,
-          suggestions: booking.suggestions || undefined,
-        },
-      });
+      try {
+        const emailResponse = await supabase.functions.invoke('send-booking-confirmation', {
+          body: {
+            name: booking.name,
+            age: booking.age,
+            gender: booking.gender,
+            whatsapp: booking.whatsapp,
+            email: booking.email,
+            reason: booking.reason,
+            consultationType: booking.consultationType,
+            consultationMode: booking.consultationType === 'online' ? booking.consultationMode : undefined,
+            serviceName: selectedService?.name || '',
+            serviceCharge: selectedService?.price || 0,
+            date: format(booking.date!, 'PPP'),
+            timeSlot: booking.timeSlot,
+            paymentMethod: booking.paymentMethod,
+            attachmentUrls: attachmentUrls,
+            paymentScreenshotUrl: paymentScreenshotUrl,
+            suggestions: booking.suggestions || undefined,
+          },
+        });
 
-      if (!response.error) {
-        console.log('Email confirmation sent successfully');
-      } else {
-        console.error('Email sending failed');
-        // Don't throw error here as appointment is already saved
+        if (emailResponse.error) {
+          console.error('Email sending error:', emailResponse.error);
+          // Don't throw error here as appointment is already saved
+          toast({
+            title: "Appointment Confirmed!",
+            description: "Your appointment is booked, but email confirmation may be delayed.",
+          });
+        } else {
+          console.log('Email confirmation sent successfully');
+          toast({
+            title: "Appointment Confirmed! 🎉",
+            description: "You will receive a confirmation email shortly.",
+          });
+        }
+      } catch (emailError) {
+        console.error('Email function error:', emailError);
+        toast({
+          title: "Appointment Confirmed!",
+          description: "Your appointment is booked. You'll be contacted via WhatsApp.",
+        });
       }
       
       triggerConfetti();
-      toast({
-        title: "Appointment Confirmed!",
-        description: "You will receive a confirmation email shortly.",
-      });
+      
+      // Move to confirmation step
+      setCurrentStep('confirmation');
 
-      // Reset form
+      // Reset form after delay
       setTimeout(() => {
         setBooking({
           name: '',
@@ -455,14 +476,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
         setCaptchaVerified(false);
         
         onClose();
-      }, 2000);
+      }, 3000);
     } catch (error) {
-      console.error('Booking error');
+      console.error('Booking error:', error);
       toast({
         title: "Booking Failed",
-        description: "There was an error processing your appointment. Please try again or contact us directly via WhatsApp.",
+        description: error instanceof Error ? error.message : "There was an error processing your appointment. Please try again or contact us directly via WhatsApp.",
         variant: "destructive",
       });
+      setPaymentConfirmed(false);
     } finally {
       setIsSubmitting(false);
     }
