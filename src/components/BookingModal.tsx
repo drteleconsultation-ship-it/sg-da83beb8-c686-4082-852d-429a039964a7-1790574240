@@ -462,7 +462,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
       
       // Check if it's a Supabase error
       if (error && typeof error === 'object' && 'code' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error code:', (error as any).code);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.error('Supabase error details:', (error as any).details);
       }
       
