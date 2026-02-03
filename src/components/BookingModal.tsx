@@ -153,6 +153,35 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [timePopoverOpen, setTimePopoverOpen] = useState(false);
   
+  // Helper function to copy UPI ID
+  const copyUPIId = () => {
+    navigator.clipboard.writeText('7415379845@okbizaxis');
+    toast({
+      title: "UPI ID Copied",
+      description: "UPI ID copied to clipboard",
+    });
+  };
+
+  // Helper function to generate UPI payment link
+  const generateUPILink = (app?: 'gpay' | 'phonepe' | 'paytm') => {
+    const upiId = '7415379845@okbizaxis';
+    const payeeName = 'Dr Deogade Clinic';
+    const transactionNote = `Appointment - ${booking.name}`;
+    
+    let baseUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    
+    // Add app-specific parameters
+    if (app === 'gpay') {
+      baseUrl = `gpay://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    } else if (app === 'phonepe') {
+      baseUrl = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    } else if (app === 'paytm') {
+      baseUrl = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    }
+    
+    return baseUrl;
+  };
+  
   // Fetch booked slots count when date changes
   useEffect(() => {
     const fetchBookedSlots = async () => {
