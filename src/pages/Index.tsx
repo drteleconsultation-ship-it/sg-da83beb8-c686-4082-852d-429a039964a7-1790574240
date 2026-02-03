@@ -51,22 +51,13 @@ const Index = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <InstallPrompt />
+        <SocialShareButtons />
         <HeroSection onBookingClick={() => setIsBookingOpen(true)} />
         <MissionSection />
         <ChargesSection />
         <AboutSection />
         <ServicesSection />
         <MapSection />
-        
-        {/* Social Share Section */}
-        <div className="container mx-auto px-4 py-8 border-t">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">
-              Help others discover quality healthcare - Share our clinic!
-            </p>
-            <SocialShareButtons />
-          </div>
-        </div>
         
         <BookingModal 
           isOpen={isBookingOpen} 
