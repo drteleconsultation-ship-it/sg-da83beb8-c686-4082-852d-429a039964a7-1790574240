@@ -212,47 +212,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
   const availableSlots = timeSlots.filter(slot => !bookedSlots.includes(slot));
   const selectedService = services.find(s => s.id === booking.serviceType);
   const amount = selectedService?.price || 0;
-
-  const generateUPILink = (app?: string) => {
-    const upiId = '7415379845@okbizaxis';
-    const payeeName = 'Dr Deogade Clinic';
-    const transactionNote = `${selectedService?.name} - ${booking.name}`;
-    const transactionId = `CLINIC${Date.now()}`;
-    
-    // Standard UPI URL format - more compatible with all apps
-    const params = new URLSearchParams({
-      pa: upiId,
-      pn: payeeName,
-      tn: transactionNote,
-      am: amount.toString(),
-      cu: 'INR',
-      tr: transactionId
-    }).toString();
-    
-    // Different apps use different URL schemes
-    switch(app) {
-      case 'gpay':
-        // Google Pay uses gpay:// or tez:// scheme
-        return `gpay://upi/pay?${params}`;
-      case 'phonepe':
-        // PhonePe scheme
-        return `phonepe://pay?${params}`;
-      case 'paytm':
-        // Paytm scheme
-        return `paytmmp://pay?${params}`;
-      default:
-        // Generic UPI intent that works with most apps
-        return `upi://pay?${params}`;
+  
+  // Check if Dr Priyanka service is selected (forces online consultation)
+  const isDrPriyankaService = booking.serviceType === 'dr_priyanka_gynecology';
+  
+  // Automatically set consultation type to online if Dr Priyanka is selected
+  useEffect(() => {
+    if (isDrPriyankaService && booking.consultationType === 'clinic') {
+      setBooking(prev => ({ ...prev, consultationType: 'online', timeSlot: '' }));
     }
-  };
-
-  const copyUPIId = () => {
-    navigator.clipboard.writeText('7415379845@okbizaxis');
-    toast({
-      title: "Copied!",
-      description: "UPI ID copied to clipboard",
-    });
-  };
+  }, [isDrPriyankaService, booking.consultationType]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -800,6 +769,11 @@ Please arrive 10 minutes early.`;
       {/* Consultation Type */}
       <div className="space-y-3">
         <Label className="text-base font-semibold">Consultation Type</Label>
+        {isDrPriyankaService && (
+          <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-3">
+            ℹ️ <strong>Dr Priyanka consultations are available online only.</strong>
+          </p>
+        )}
         <RadioGroup
           value={booking.consultationType}
           onValueChange={(value: 'online' | 'clinic') => 
@@ -808,12 +782,21 @@ Please arrive 10 minutes early.`;
           className="flex gap-6"
         >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="clinic" id="clinic" />
-            <Label htmlFor="clinic">In-Clinic Visit</Label>
+            <RadioGroupItem 
+              value="clinic" 
+              id="clinic" 
+              disabled={isDrPriyankaService}
+            />
+            <Label 
+              htmlFor="clinic" 
+              className={isDrPriyankaService ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+            >
+              In-Clinic Visit
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="online" id="online" />
-            <Label htmlFor="online">Online Consultation</Label>
+            <Label htmlFor="online" className="cursor-pointer">Online Consultation</Label>
           </div>
         </RadioGroup>
       </div>
@@ -1186,6 +1169,14 @@ Please arrive 10 minutes early.`;
         <div className="space-y-4">
           <Label className="text-base font-semibold">Payment Method</Label>
           
+          {booking.consultationType === 'clinic' && (
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 mb-3">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                💳 <strong>Payment required:</strong> For in-clinic visits, please complete payment now to confirm your appointment.
+              </p>
+            </div>
+          )}
+          
           <RadioGroup
             value={booking.paymentMethod}
             onValueChange={(value: 'upi' | 'pay-later') => setBooking({ ...booking, paymentMethod: value })}
@@ -1387,18 +1378,20 @@ Please arrive 10 minutes early.`;
               </div>
             </div>
 
-            {/* Pay Later Option */}
-            <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="pay-later" id="pay-later" className="mt-1" />
-              <div className="flex-1">
-                <Label htmlFor="pay-later" className="font-semibold cursor-pointer">
-                  Pay at Clinic
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Pay in cash at the time of your visit
-                </p>
+            {/* Pay Later Option - Only show for ONLINE consultations */}
+            {booking.consultationType === 'online' && (
+              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                <RadioGroupItem value="pay-later" id="pay-later" className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor="pay-later" className="font-semibold cursor-pointer">
+                    Pay at Clinic
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Pay in cash at the time of your visit
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </RadioGroup>
         </div>
 
