@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIcon, Clock, CheckCircle, CreditCard, ArrowLeft, ExternalLink, CheckCircle2, Upload, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, CreditCard, ArrowLeft, ExternalLink, CheckCircle2, Upload, FileText, Printer, Share2 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -587,6 +587,169 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePrintAppointment = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Appointment Confirmation - Dr Deogade Clinic</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 40px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 3px solid #1e88e5;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .logo {
+              font-size: 28px;
+              font-weight: bold;
+              color: #1e88e5;
+              margin-bottom: 10px;
+            }
+            .details {
+              margin: 20px 0;
+            }
+            .detail-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 12px;
+              border-bottom: 1px solid #e0e0e0;
+            }
+            .detail-label {
+              font-weight: 600;
+              color: #666;
+            }
+            .detail-value {
+              color: #333;
+            }
+            .footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 2px solid #e0e0e0;
+              text-align: center;
+              color: #666;
+              font-size: 14px;
+            }
+            .amount {
+              font-size: 24px;
+              font-weight: bold;
+              color: #1e88e5;
+              text-align: center;
+              margin: 20px 0;
+              padding: 15px;
+              background: #f5f5f5;
+              border-radius: 8px;
+            }
+            @media print {
+              body { padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">🏥 Dr Deogade Clinic</div>
+            <p>Appointment Confirmation</p>
+          </div>
+          
+          <div class="details">
+            <div class="detail-row">
+              <span class="detail-label">Patient Name:</span>
+              <span class="detail-value">${booking.name}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Age / Gender:</span>
+              <span class="detail-value">${booking.age} / ${booking.gender}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">WhatsApp:</span>
+              <span class="detail-value">${booking.whatsapp}</span>
+            </div>
+            ${booking.email ? `
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">${booking.email}</span>
+            </div>
+            ` : ''}
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <span class="detail-value">${selectedService?.name || ''}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Consultation Type:</span>
+              <span class="detail-value">${booking.consultationType === 'clinic' ? 'In-Clinic Visit' : 'Online Consultation'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date:</span>
+              <span class="detail-value">${booking.date ? format(booking.date, 'PPP') : ''}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Time:</span>
+              <span class="detail-value">${booking.timeSlot}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Reason:</span>
+              <span class="detail-value">${booking.reason}</span>
+            </div>
+          </div>
+          
+          <div class="amount">
+            Total Amount: ₹${amount}
+          </div>
+          
+          <div class="footer">
+            <p><strong>Dr Deogade Clinic</strong></p>
+            <p>Pune, Maharashtra</p>
+            <p>Phone: +91 7415379845</p>
+            <p style="margin-top: 15px; font-size: 12px;">
+              Please arrive 10 minutes early for your appointment.<br>
+              Bring any relevant medical records or prescriptions.
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    }
+  };
+
+  const handleShareViaWhatsApp = () => {
+    const message = `🏥 *Appointment Confirmed - Dr Deogade Clinic*
+
+📋 *Appointment Details:*
+👤 Name: ${booking.name}
+📅 Date: ${booking.date ? format(booking.date, 'PPP') : ''}
+🕐 Time: ${booking.timeSlot}
+🏥 Service: ${selectedService?.name || ''}
+💼 Type: ${booking.consultationType === 'clinic' ? 'In-Clinic Visit' : 'Online Consultation'}
+💰 Amount: ₹${amount}
+
+📍 *Clinic Location:*
+Dr Deogade Clinic, Pune, Maharashtra
+
+📞 *Contact:*
++91 7415379845
+
+✅ Your appointment is confirmed!
+Please arrive 10 minutes early.`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const renderFormStep = () => (
@@ -1343,6 +1506,29 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
               <span className="font-bold text-primary text-lg">₹{amount}</span>
             </div>
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePrintAppointment}
+            className="flex items-center gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            Print Details
+          </Button>
+          
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleShareViaWhatsApp}
+            className="flex items-center gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            Share via WhatsApp
+          </Button>
         </div>
 
         {/* Next Steps */}

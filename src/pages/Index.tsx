@@ -9,6 +9,9 @@ import MapSection from '@/components/MapSection';
 import BookingModal from '@/components/BookingModal';
 import FloatingButtons from '@/components/FloatingButtons';
 import InstallPrompt from '@/components/InstallPrompt';
+import SocialShareButtons from '@/components/SocialShareButtons';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
+import PageLoader from '@/components/PageLoader';
 import { LanguageProvider } from '@/components/LanguageSelector';
 
 const Index = () => {
@@ -20,10 +23,31 @@ const Index = () => {
       setIsBookingOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
+
+    // Keyboard shortcuts
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only trigger if not typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch(e.key.toLowerCase()) {
+        case 'b':
+          setIsBookingOpen(true);
+          break;
+        case 'h':
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
   return (
     <LanguageProvider>
+      <PageLoader />
       <div className="min-h-screen bg-background">
         <Header />
         <InstallPrompt />
@@ -34,12 +58,23 @@ const Index = () => {
         <ServicesSection />
         <MapSection />
         
+        {/* Social Share Section */}
+        <div className="container mx-auto px-4 py-8 border-t">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              Help others discover quality healthcare - Share our clinic!
+            </p>
+            <SocialShareButtons />
+          </div>
+        </div>
+        
         <BookingModal 
           isOpen={isBookingOpen} 
           onClose={() => setIsBookingOpen(false)} 
         />
         
         <FloatingButtons />
+        <ScrollToTopButton />
       </div>
     </LanguageProvider>
   );
