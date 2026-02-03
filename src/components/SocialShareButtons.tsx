@@ -35,23 +35,23 @@ const SocialShareButtons: React.FC = () => {
 
   return (
     <div className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 md:gap-3">
-      {/* Share Icon Button */}
+      {/* Share Icon Button - Primary Color */}
       <Button
         variant="outline"
         size="icon"
         onClick={handleCopyLink}
-        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-white hover:bg-primary hover:text-white shadow-lg border-2 border-gray-200 transition-all duration-300 hover:scale-110"
+        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-primary text-white hover:bg-primary/90 shadow-lg border-2 border-primary transition-all duration-300 hover:scale-110"
         title="Copy Link"
       >
         <Share2 className="h-4 w-4 md:h-5 md:w-5" />
       </Button>
 
-      {/* WhatsApp Button */}
+      {/* WhatsApp Button - Green */}
       <Button
         variant="outline"
         size="icon"
         onClick={handleWhatsAppShare}
-        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-white hover:bg-green-500 hover:text-white shadow-lg border-2 border-gray-200 transition-all duration-300 hover:scale-110"
+        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-[#25D366] text-white hover:bg-[#20BA5A] shadow-lg border-2 border-[#25D366] transition-all duration-300 hover:scale-110"
         title="Share on WhatsApp"
       >
         <svg
@@ -63,23 +63,23 @@ const SocialShareButtons: React.FC = () => {
         </svg>
       </Button>
 
-      {/* Facebook Button */}
+      {/* Facebook Button - Blue */}
       <Button
         variant="outline"
         size="icon"
         onClick={handleFacebookShare}
-        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-white hover:bg-blue-600 hover:text-white shadow-lg border-2 border-gray-200 transition-all duration-300 hover:scale-110"
+        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-[#1877F2] text-white hover:bg-[#0C63D4] shadow-lg border-2 border-[#1877F2] transition-all duration-300 hover:scale-110"
         title="Share on Facebook"
       >
         <Facebook className="h-4 w-4 md:h-5 md:w-5" />
       </Button>
 
-      {/* Twitter/X Button */}
+      {/* Twitter/X Button - Black */}
       <Button
         variant="outline"
         size="icon"
         onClick={handleTwitterShare}
-        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-white hover:bg-black hover:text-white shadow-lg border-2 border-gray-200 transition-all duration-300 hover:scale-110"
+        className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-black text-white hover:bg-gray-800 shadow-lg border-2 border-black transition-all duration-300 hover:scale-110"
         title="Share on Twitter"
       >
         <svg
