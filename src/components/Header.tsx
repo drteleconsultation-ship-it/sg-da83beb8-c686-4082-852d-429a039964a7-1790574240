@@ -1,31 +1,28 @@
-import React from 'react';
-import logoImage from '@/assets/logo-new.jpg';
-import doctorPhoto from '@/assets/doctor-photo.jpg';
-import LanguageSelector from '@/components/LanguageSelector';
-import ThemeToggle from '@/components/ThemeToggle';
+import React from "react";
+import { Link } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
+import LanguageSelector from "./LanguageSelector";
+import { BarChart3 } from "lucide-react";
 
-const Header: React.FC = () => {
+const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          <div className="flex justify-center items-center gap-2 md:gap-4 flex-1 md:flex-none">
-            <img 
-              src={doctorPhoto} 
-              alt="Dr. Deogade - Medical Professional" 
-              className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover border-2 border-primary/20"
-            />
-            <img 
-              src={logoImage} 
-              alt="Dr Deogade Clinic Logo - Rejuvenating Life" 
-              className="h-16 md:h-20 w-auto object-contain hidden xs:block"
-            />
-          </div>
-          
-          <div className="flex items-center gap-2 md:gap-3">
-            <ThemeToggle />
-            <LanguageSelector />
-          </div>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/logo-192.jpg" alt="Dr Deogade Clinic" className="h-10 w-10 rounded-full" />
+          <span className="font-semibold text-gray-900 dark:text-white">Dr Deogade Clinic</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/analytics"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            title="View Analytics"
+          >
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <span className="hidden sm:inline text-sm font-medium">Analytics</span>
+          </Link>
+          <LanguageSelector />
+          <ThemeToggle />
         </div>
       </div>
     </header>
