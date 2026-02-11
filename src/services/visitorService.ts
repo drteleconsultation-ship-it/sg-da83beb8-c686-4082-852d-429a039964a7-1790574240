@@ -108,12 +108,13 @@ export const getVisitorStats = async (
         startDate = new Date(now.setHours(0, 0, 0, 0));
         endDate = new Date(now.setHours(23, 59, 59, 999));
         break;
-      case "yesterday":
+      case "yesterday": {
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
         startDate = new Date(yesterday.setHours(0, 0, 0, 0));
         endDate = new Date(yesterday.setHours(23, 59, 59, 999));
         break;
+      }
       case "24h":
         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         break;
