@@ -14,13 +14,6 @@ const Header = () => {
         </Link>
         <div className="flex items-center gap-3">
           <Link
-            to="/services"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            title="View Services & Charges"
-          >
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Services</span>
-          </Link>
-          <Link
             to="/analytics"
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             title="View Analytics"
