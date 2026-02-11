@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import MissionSection from '@/components/MissionSection';
+import StatsCounter from '@/components/StatsCounter';
 import ChargesSection from '@/components/ChargesSection';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
@@ -54,6 +55,7 @@ const Index = () => {
         <SocialShareButtons />
         <HeroSection onBookingClick={() => setIsBookingOpen(true)} />
         <MissionSection />
+        <StatsCounter />
         <ChargesSection />
         <AboutSection />
         <ServicesSection />
