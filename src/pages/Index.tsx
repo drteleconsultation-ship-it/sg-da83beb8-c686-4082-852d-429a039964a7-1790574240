@@ -3,9 +3,7 @@ import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import MissionSection from '@/components/MissionSection';
 import StatsCounter from '@/components/StatsCounter';
-import ChargesSection from '@/components/ChargesSection';
 import AboutSection from '@/components/AboutSection';
-import ServicesSection from '@/components/ServicesSection';
 import MapSection from '@/components/MapSection';
 import BookingModal from '@/components/BookingModal';
 import FloatingButtons from '@/components/FloatingButtons';
@@ -56,9 +54,7 @@ const Index = () => {
         <HeroSection onBookingClick={() => setIsBookingOpen(true)} />
         <MissionSection />
         <StatsCounter />
-        <ChargesSection />
         <AboutSection />
-        <ServicesSection />
         <MapSection />
         
         <BookingModal 
