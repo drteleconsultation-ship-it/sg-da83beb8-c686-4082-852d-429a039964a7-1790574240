@@ -10,9 +10,8 @@ interface LanguageContextType {
 
 const translations = {
   en: {
-    'header.title': 'Online Telemedicine Service in India',
-    'header.subtitle': 'Dr Rikki Deogade ( MBBS, CGO, CCH, CSD, CVD, Medical officer )\nDr Priyanka Gulhane ( MBBS, MD, CGO )',
-    'header.button': 'Book Now',
+    'header.title': 'Dr. Deogade Clinic',
+    'header.subtitle': 'Dr Rikki Deogade ( MBBS, CGO, CCH, CSD, CVD, Medical officer )',
     'hero.title': 'Professional Medical Care & Teleconsultation',
     'hero.subtitle': 'Book online consultation from home & in-clinic visits',
     'hero.bookNow': 'Book Now',
@@ -35,7 +34,7 @@ const translations = {
   },
   hi: {
     'header.title': 'डॉ. देवगडे क्लिनिक',
-    'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीवीडी, मेडिकल ऑफिसर)\nडॉ प्रियंका गुलहाने (एमबीबीएस, एमडी, सीजीओ)',
+    'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीवीडी, मेडिकल ऑफिसर)',
     'hero.title': 'पेशेवर चिकित्सा देखभाल और टेलीकंसल्टेशन',
     'hero.subtitle': 'घर से ऑनलाइन परामर्श और क्लिनिक में विजिट बुक करें',
     'hero.bookNow': 'अभी बुक करें',
@@ -58,7 +57,7 @@ const translations = {
   },
   mr: {
     'header.title': 'डॉ. देवगडे क्लिनिक',
-    'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीव्हीडी, मेडिकल ऑफिसर)\nडॉ प्रियंका गुलहाने (एमबीबीएस, एमडी, सीजीओ)',
+    'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीव्हीडी, मेडिकल ऑफिसर)',
     'hero.title': 'व्यावसायिक वैद्यकीय सेवा आणि टेलीकन्सल्टेशन',
     'hero.subtitle': 'घरूनच ऑनलाइन सल्ला आणि क्लिनिकमध्ये भेट बुक करा',
     'hero.bookNow': 'आता बुक करा',
