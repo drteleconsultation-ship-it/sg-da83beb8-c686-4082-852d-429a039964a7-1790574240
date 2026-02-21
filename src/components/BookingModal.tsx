@@ -958,87 +958,57 @@ Please arrive 10 minutes early.`;
 
       {/* Time Slot Selection Section */}
       <div className="space-y-4 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
-        <div className="flex items-center gap-2 mb-2">
-          <Clock className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-lg">Select a time</h3>
-        </div>
-        {booking.date ? (
-          <Popover open={timePopoverOpen} onOpenChange={setTimePopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal h-12",
-                  !booking.timeSlot && "text-muted-foreground"
-                )}
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                {booking.timeSlot ? (
-                  <span>{booking.timeSlot}</span>
-                ) : (
-                  <span>Pick your preferred time</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <div className="p-4">
-                <RadioGroup value={booking.timeSlot} onValueChange={(value) => {
-                  setBooking({...booking, timeSlot: value});
-                  setTimePopoverOpen(false);
-                }}>
-                  <div className="space-y-1 max-h-[400px] overflow-y-auto">
-                    {timeSlots.map((slot) => {
-                      const maxCapacity = 2;
-                      const bookedCount = slotBookingCounts[slot] || 0;
-                      const availableCount = maxCapacity - bookedCount;
-                      const isFull = availableCount <= 0;
-                      
-                      return (
-                        <div key={slot} className="flex items-center">
-                          <RadioGroupItem 
-                            value={slot} 
-                            id={slot} 
-                            disabled={isFull}
-                            className="peer sr-only" 
-                          />
-                          <Label
-                            htmlFor={slot}
-                            className={`flex items-center justify-between w-full rounded-md border bg-background p-4 hover:bg-accent transition-colors cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 ${
-                              isFull ? 'opacity-50 cursor-not-allowed text-muted-foreground' : ''
-                            }`}
-                          >
-                            <span className="text-base">
-                              {slot} {isFull ? '(Full)' : `(${availableCount} available)`}
-                            </span>
-                            <div className={`w-5 h-5 rounded-full border-2 ${
-                              booking.timeSlot === slot 
-                                ? 'border-primary bg-primary' 
-                                : 'border-muted-foreground'
-                            } flex items-center justify-center`}>
-                              {booking.timeSlot === slot && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary-foreground" />
-                              )}
-                            </div>
-                          </Label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </RadioGroup>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {availableSlots.length > 0 
-                    ? `${availableSlots.length} slots available`
-                    : "No slots available for this date. Please select another date."}
-                </p>
-              </div>
-            </PopoverContent>
-          </Popover>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Please select a date first to view available time slots
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground">
+        <Label className="text-base font-semibold text-primary flex items-center gap-2">
+          <Clock className="w-5 h-5" />
+          Select Time Slot
+        </Label>
+        <Popover open={timePopoverOpen} onOpenChange={setTimePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal border-2 hover:border-primary/50 transition-colors h-12",
+                !booking.timeSlot && "text-muted-foreground"
+              )}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              {booking.timeSlot || "Select time slot"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[380px] p-4 max-h-[480px] overflow-y-auto" align="start">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm text-primary mb-3">Available Slots</h4>
+              {availableSlots.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {availableSlots.map((slot) => (
+                    <Button
+                      key={slot}
+                      variant={booking.timeSlot === slot ? "default" : "outline"}
+                      className={cn(
+                        "h-10 text-xs font-medium transition-all px-1",
+                        booking.timeSlot === slot
+                          ? "bg-primary text-white shadow-md scale-[1.02]"
+                          : "hover:border-primary/50 hover:bg-primary/5"
+                      )}
+                      onClick={() => {
+                        setBooking({ ...booking, timeSlot: slot });
+                        setTimePopoverOpen(false);
+                      }}
+                    >
+                      {slot}
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No slots available for this date.</p>
+                  <p className="text-xs mt-1">Please select another date.</p>
+                </div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <p className="text-sm text-muted-foreground">
           Select your preferred consultation time
         </p>
       </div>
