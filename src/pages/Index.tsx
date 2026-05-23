@@ -14,6 +14,7 @@ import SocialShareButtons from '@/components/SocialShareButtons';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import PageLoader from '@/components/PageLoader';
 import { LanguageProvider } from '@/components/LanguageSelector';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -68,6 +69,7 @@ const Index = () => {
         
         <FloatingButtons />
         <ScrollToTopButton />
+        <Footer />
       </div>
     </LanguageProvider>
   );

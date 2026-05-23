@@ -6,6 +6,7 @@ import Index from "./pages/Index";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import Analytics from "./pages/Analytics";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { logVisit } from "./services/visitorService";
 
 // Log visitor on app load
@@ -17,12 +18,16 @@ const router = createBrowserRouter([
     element: <Index />,
   },
   {
+    path: "/analytics",
+    element: <Analytics />,
+  },
+  {
     path: "/services",
     element: <Services />,
   },
   {
-    path: "/analytics",
-    element: <Analytics />,
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />,
   },
   {
     path: "*",

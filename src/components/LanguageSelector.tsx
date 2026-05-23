@@ -31,9 +31,12 @@ const translations = {
     'booking.submit': 'Proceed to Payment',
     'about.title': 'About Us',
     'charges.title': 'Our Services & Charges',
+    'mission.point2': 'Quality Healthcare',
+    'mission.point3': 'Patient-Centric Approach',
+    'footer.privacyPolicy': 'Privacy Policy',
   },
   hi: {
-    'header.title': 'डॉ. देवगडे क्लिनिक',
+    'header.title': 'भारत में ऑनलाइन टेलीमेडिसिन सेवा',
     'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीवीडी, मेडिकल ऑफिसर)',
     'hero.title': 'पेशेवर चिकित्सा देखभाल और टेलीकंसल्टेशन',
     'hero.subtitle': 'घर से ऑनलाइन परामर्श और क्लिनिक में विजिट बुक करें',
@@ -54,9 +57,12 @@ const translations = {
     'booking.submit': 'भुगतान के लिए आगे बढ़ें',
     'about.title': 'हमारे बारे में',
     'charges.title': 'हमारी सेवाएं और शुल्क',
+    'mission.point2': 'गुणवत्तापूर्ण स्वास्थ्य सेवा',
+    'mission.point3': 'रोगी-केंद्रित दृष्टिकोण',
+    'footer.privacyPolicy': 'गोपनीयता नीति',
   },
   mr: {
-    'header.title': 'डॉ. देवगडे क्लिनिक',
+    'header.title': 'भारतातील ऑनलाइन टेलिमेडिसिन सेवा',
     'header.subtitle': 'डॉ रिक्की देवगडे (एमबीबीएस, सीजीओ, सीसीएच, सीएसडी, सीव्हीडी, मेडिकल ऑफिसर)',
     'hero.title': 'व्यावसायिक वैद्यकीय सेवा आणि टेलीकन्सल्टेशन',
     'hero.subtitle': 'घरूनच ऑनलाइन सल्ला आणि क्लिनिकमध्ये भेट बुक करा',
@@ -77,6 +83,9 @@ const translations = {
     'booking.submit': 'पेमेंटसाठी पुढे जा',
     'about.title': 'आमच्याबद्दल',
     'charges.title': 'आमच्या सेवा आणि शुल्क',
+    'mission.point2': 'दर्जेदार आरोग्य सेवा',
+    'mission.point3': 'रुग्ण-केंद्रित दृष्टिकोन',
+    'footer.privacyPolicy': 'गोपनीयता धोरण',
   },
 };
 
